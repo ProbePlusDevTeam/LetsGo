@@ -1,0 +1,4 @@
+go get -u github.com/gin-gonic/gin      //For installing gin framework
+go get go.mongodb.org/mongo-driver/mongo   //For mongodb driver
+
+for running go file run:- go run <file_name>     eg: api/main.go
