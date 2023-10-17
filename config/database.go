@@ -1,8 +1,11 @@
 package database
 
 import (
+     "os"
     "context"
+    "log"
     "go.mongodb.org/mongo-driver/mongo"
+    "github.com/joho/godotenv"
     "go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -26,4 +29,15 @@ func ConnectMongoDB() (*mongo.Client, error) {
     }
 
     return c, nil
+}
+
+func GetCollection(CollectionName string) *mongo.Collection {
+    if err := godotenv.Load(); err != nil {
+        log.Fatalf("Error loading .env file: %v", err)
+    }
+    dbname := os.Getenv("DB_NAME")
+    client,_ := ConnectMongoDB()
+	var collection *mongo.Collection = client.Database(dbname).Collection(CollectionName)
+	return collection
+
 }

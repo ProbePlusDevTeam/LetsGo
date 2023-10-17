@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+	"strconv"
 	"context"
     "net/http"
     "github.com/gin-gonic/gin"
@@ -12,14 +14,15 @@ import (
     "github.com/ProbePlusDevTeam/LetsGo/api/models"
 )
 
+var UserCollection *mongo.Collection = database.GetCollection("Users")
+
+
 func CreateUSer(detail *gin.Context){
 	var newuser models.User
-	client,_ := database.ConnectMongoDB()
-	collection := client.Database("Sample_GO_DB").Collection("Users")
 	if error := detail.BindJSON(&newuser); error!=nil{     
 		detail.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON data"})
 	}
-	_, err := collection.InsertOne(context.Background(), newuser)
+	_, err := UserCollection.InsertOne(context.Background(), newuser)
     if err != nil {
         log.Fatalf("Failed to create user: %v", err)
         return 
@@ -28,10 +31,8 @@ func CreateUSer(detail *gin.Context){
 }
 
 func GetUsers(c *gin.Context){  
-	client,_ := database.ConnectMongoDB()
-	collection := client.Database("Sample_GO_DB").Collection("Users")
 	filter :=bson.M{}
-	cursor,_ := collection.Find(context.Background(), filter)
+	cursor,_ := UserCollection.Find(context.Background(), filter)
 	var users []models.User
 	for cursor.Next(context.Background()) {
         var user models.User
@@ -44,19 +45,30 @@ func GetUsers(c *gin.Context){
     c.JSON(http.StatusOK, users) //send an HTTP response in JSON format the HTTP status code & data to be serialized and sent as JSON
 }
 
+func GetUser(c *gin.Context){
+	var newuser models.User
+	id,_ := strconv.Atoi(c.Param("id"))
+	filter := bson.M{"id": id}
+	err := UserCollection.FindOne(context.Background(), filter).Decode(&newuser)
+	fmt.Println(filter)
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"msg": "User Not Found"})
+        return
+    }
+	c.JSON(http.StatusOK, newuser)
+}
+
 func UpdateUser(detail *gin.Context) {
-	id := detail.Param("id")
-	client,_ := database.ConnectMongoDB()
+	id,_ := strconv.Atoi(detail.Param("id"))
 	var updateuser models.User
 	if error := detail.BindJSON(&updateuser); error!=nil{     
 		detail.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON data"})
 		return
 	}
-	collection := client.Database("Sample_GO_DB").Collection("Users")
 	filter := bson.M{"id": id}
 	update := bson.M{"$set": updateuser}
 	options := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(false)
-	result := collection.FindOneAndUpdate(context.Background(), filter,update,options)
+	result := UserCollection.FindOneAndUpdate(context.Background(), filter,update,options)
 	if result.Err() == mongo.ErrNoDocuments {
         detail.JSON(http.StatusNotFound, gin.H{"msg": "Book Not Found"})
         return
