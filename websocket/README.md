@@ -5,7 +5,7 @@ Go 1.16 or later
 
 Installation
 Clone the repository:
-git clone https://github.com/your-repo/socketio-server.git
+git clone (https://github.com/ProbePlusDevTeam/LetsGo.git)
 cd socketio-server
 Install the required Go modules:
 go mod tidy
