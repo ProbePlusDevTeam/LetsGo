@@ -7,6 +7,7 @@ Learning GO Language at ProbePlus
 
 https://gobyexample.com/
 
+https://github.com/avelino/awesome-go
 
 # Useful Repositories
 
